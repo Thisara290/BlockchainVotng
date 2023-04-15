@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Login Page</title>
+    <script>
+      function submitForm() {
+       var name = document.getElementById("name").value;
+       var password = document.getElementById("password").value;
+        // sending the name and password 
+     }
+    </script>
+  </head>
+  <body>
+    <h1>Login Page</h1>
+    <form id="loginForm" method="POST" action="/login">
+      <label for="name">Name:</label>
+      <input type="text" name="name" required><br><br>
+      <label for="password">Password:</label>
+      <input type="password" name="password" required><br><br>
+      <input type="submit" value="Submit">
+    </form>
+    <p>Want to create an account? <a href="/views/signup.html">Click here</a></p>
+    <p>Login as an Admin <a href="/views/adminlog.html">Click here</a></p>
+  </body>
+</html>
