@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <title>Voting DAPP</title>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.2.7-rc.0/web3.min.js"></script>
+   </head>
+   <body>
+      <form method="get" action="/admin" onsubmit="return validateForm()">  <!-- user name password signup for  voter for voters page  admin for adimn  -->
+         <label for="walletAddress">Enter Admin wallet address:</label>
+         <input type="text" id="walletAddress" name="walletAddress" placeholder="Enter wallet address">
+         <br><br>
+         <button type="submit">Login</button>
+      </form>
+      <script>
+         function validateForm() {
+            var address = document.getElementById("walletAddress").value;
+            if (address == "") {
+               alert("Please enter a wallet address");
+               return false;
+            }
+            // Check if the address is a valid Ethereum address using a regular expression
+            if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
+               alert("Please enter a valid Ethereum address");
+               document.getElementById("walletAddress").value = "";
+               return false;
+            }
+            if (address !== "0x953c419627Ff5cDcf89469eE2f6e7dB50B861032") {
+               alert("You are not the admin");
+               return false;
+            }
+            return true;
+         }
+      </script>
+   </body>
+</html>
