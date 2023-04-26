@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Voting DApp Admin</title>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.2.7-rc.0/web3.min.js"></script>
+  </head>
+  <body>
+    <h1>Voting DApp Admin</h1>
+
+    <button onclick="ContractDetails()">Details</button>
+    <p>Contract Address: <span id="contractAddress"></span></p>
+    <p>Contract Owner Address: <input type="text" id="ownerAddress" /></p>
+
+    <h2>Register Candidate</h2>
+    <p>Candidate Address: <input type="text" id="candidateAddress" /></p>
+    <button onclick="registerCandidate()">Register Candidate</button>
+    <p id="registerCandidateResult"></p>
+
+	<h2>Create Tokens</h2>
+
+	<button onclick="mint()">Create tokens</button><br>
+	<input type="text" id="address" placeholder="Address"> <br> 
+	<input type="number" id="amount" placeholder="Token Amount"><br>
+	<p id="tokenamountgeneratedstatus"></p>
+
+	<h2>Check token balance</h2>
+
+	<button onclick="checkTokenBalance()">Token Amount</button><br> 
+    <p>Address: <input type="text" id="address" /></p>
+    <p>Token Balance: <span id="tokenBalance"></span></p>
+
+	<h2>send tokens to contract</h2>
+
+	<button onclick="sendToken()">Send Token</button>
+	<p>User Address: <input type="text" id="userAddress" /></p> 
+    <p>Token Amount: <input type="number" id="tokenAmount" /></p>
+    <p id="sendTokenResult"></p>
+
+	<h2>Candidate List</h2>
+	<button onclick="candidateListTable()">Candidates</button>
+	<table id="candidateListTable">
+		<thead>
+			<tr>
+			  <th>Candidates Address</th>
+			</tr>
+		  </thead>
+		  <tbody id="candidateListTableBody">
+		  </tbody>
+	  </table>
+
+	  <h2>Voters List</h2>
+	  <button onclick="votersListTable()">Voters</button>
+	  <table id="votersListTable">
+		  <thead>
+			  <tr>
+				<th>voters Address</th>
+			  </tr>
+			</thead>
+			<tbody id="votersListTableBody">
+			</tbody>
+		</table>
+
+    <h2>Set Status</h2>
+    <button onclick="setStatus()">Set Status</button>
+    <p id="setStatusResult"></p>
+	<button onclick="status()">Status</button>
+	<p>Status  : <span id="status"></span></p>
+
+	<h2>Reset voting</h2>
+	<button onclick="resetvotes()">Reset voting</button>
+    <p id="resetstatusresult"></p>
+
+    <h2>Vote for a Candidate</h2>
+    <p>Candidate Address: <input type="text" id="candidateAddressToVote" /></p>
+    <button onclick="voteForCandidate()">Vote</button>
+    <p id="voteForCandidateResult"></p>
+
+	<h2>Set Result</h2>
+    <button onclick="setResult()">Result</button>
+    <p id="setResultfunction"></p><br>
+
+	<button onclick="setwinner()">winner Address</button>
+	<p>Winner Address: <span id="WinnerAddress"></span></p>
+
+	<button onclick="setWinnerVotes()">winner Vote Count</button><br>
+	<p>Winner Vote Count: <span id="WinnerVoteCount"></span></p><br>
+
+	<button onclick="getBalanceofthecontract()">GET BALANCE OF THE CONTRACT</button><br> 
+	<p id="balanceArea">Balance: Not Connected to contract</p>
+
+
+	<button onclick="connectMetamask()">CONECT TO METAMASK</button><br> 
+    <p id="userArea">Connection Status: Not Connected to Metamask</p>
+
+
+	<button onclick="depositContract()">Send ether to the Contract</button><br>
+	<input type="number" id="depositInput" placeholder="Enter Amount"> <br><br>
+
+	<button onclick="withDraw()">WITHDRAW ETHER TO ANY ADDRESS</button><br>
+	<input type="text" id="addressInput" placeholder="Enter Address"> <br>
+	<input type="number" id="amountInput" placeholder="Enter Amount"><br>
+
+    <script>
+
+
+
+       let account; 
+        const connectMetamask = async () => {
+            if(window.ethereum !== "undefined"){ //check brownser has Metamask
+                const accounts = await ethereum.request({method: "eth_requestAccounts"});
+                account = accounts[0];
+                document.getElementById("userArea").innerHTML = "User Account is: " + account;
+            }
+        }
+
+		async function mint() {
+				const amount = document.getElementById("amount").value;
+				const address = document.getElementById("address").value;
+                await window.contract.methods.mint(address, amount).send({from: account});
+				document.getElementById('tokenamountgeneratedstatus').innerHTML = amount + "  Generated";
+		    }
+
+		async function checkTokenBalance() {
+          const address = document.getElementById('address').value;
+          const balance = await window.contract.methods.getTokenBalance(address).call();
+          document.getElementById("tokenBalance").innerHTML = balance;
+        }
+
+		async function sendToken() {
+          const userAddress = document.getElementById('userAddress').value;
+          const tokenAmount = document.getElementById('tokenAmount').value;
+          await window.contract.methods.transferToContract(tokenAmount).send({from: userAddress});
+          document.getElementById('sendTokenResult').innerHTML = 'Token transfer complete!';
+        }
+
+
+			async function withDraw() {
+				const amount = document.getElementById("amountInput").value;
+				const address = document.getElementById("addressInput").value;
+                await window.contract.methods.withdraw(address, amount).send({from: account});
+		    }
+
+			async function depositContract() {
+				const amount = document.getElementById("depositInput").value;
+                await window.contract.methods.deposit().send({from: account, value: amount });
+		    }
+
+      const contractAddress = '0x5cdb8af0278bc243b10Cf27C1583C086b10792f1';
+      const abi =[
+	{
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "spender",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			}
+		],
+		"name": "Approval",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "spender",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "approve",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "spender",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "subtractedValue",
+				"type": "uint256"
+			}
+		],
+		"name": "decreaseAllowance",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "deposit",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "spender",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "addedValue",
+				"type": "uint256"
+			}
+		],
+		"name": "increaseAllowance",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "mint",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "previousOwner",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "OwnershipTransferred",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_candidate",
+				"type": "address"
+			}
+		],
+		"name": "registerCandidate",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "renounceOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "resetVoting",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "result",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "setStatus",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "transfer",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			}
+		],
+		"name": "Transfer",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "transferFrom",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "transferOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "transferToContract",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_candidate",
+				"type": "address"
+			}
+		],
+		"name": "vote",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address payable",
+				"name": "_to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_amount",
+				"type": "uint256"
+			}
+		],
+		"name": "withdraw",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "spender",
+				"type": "address"
+			}
+		],
+		"name": "allowance",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "balanceOf",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "candidateList",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "decimals",
+		"outputs": [
+			{
+				"internalType": "uint8",
+				"name": "",
+				"type": "uint8"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getAddress",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getBalance",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getCandidateList",
+		"outputs": [
+			{
+				"internalType": "address[]",
+				"name": "",
+				"type": "address[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getStatusText",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "getTokenBalance",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getVotersList",
+		"outputs": [
+			{
+				"internalType": "address[]",
+				"name": "",
+				"type": "address[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_candidate",
+				"type": "address"
+			}
+		],
+		"name": "getVotesCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getWinner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getWinnerVotes",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "hasParticipated",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "hasVoted",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "name",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "status",
+		"outputs": [
+			{
+				"internalType": "enum Voting.VotingStatus",
+				"name": "",
+				"type": "uint8"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "symbol",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "totalSupply",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_candidate",
+				"type": "address"
+			}
+		],
+		"name": "validateCandidate",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "voterslist",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "votesRecieved",
+		"outputs": [
+			{
+				"internalType": "uint8",
+				"name": "",
+				"type": "uint8"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "winner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "winnerVotes",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
+      const web3 = new Web3(window.ethereum);
+
+      const contract = new web3.eth.Contract(abi, contractAddress);
+
+	  async function ContractDetails() {
+        try {
+          await window.ethereum.request({ method: 'eth_requestAccounts' });
+          const accounts = await web3.eth.getAccounts();
+          document.getElementById('contractAddress').innerHTML = contractAddress;
+          document.getElementById('ownerAddress').value = accounts[0];
+		  window.contract = new web3.eth.Contract(abi, contractAddress);
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+	  async function getBalanceofthecontract() {
+			const data = await window.contract.methods.getBalance().call(); 
+            document.getElementById("balanceArea").innerHTML = "Contract Balance : " + data;
+		    }
+
+			
+
+
+      async function status() {
+          try {
+		  const ownerAddress = document.getElementById('ownerAddress').value;
+		  await window.ethereum.request({ method: 'eth_requestAccounts' });
+		  const accounts = await web3.eth.getAccounts();
+          if (accounts[0] !== ownerAddress) {
+          throw new Error('You must be the owner to set the winner');
+		  }
+          const status = await contract.methods.getStatusText().call();
+          document.getElementById('status').innerHTML = status;
+          } catch (error) {
+          console.error(error);
+          }
+        }
+
+		async function setStatus() {
+        try {
+          const ownerAddress = document.getElementById('ownerAddress').value;
+          await window.ethereum.request({ method: 'eth_requestAccounts' });
+          const accounts = await web3.eth.getAccounts();
+          if (accounts[0] !== ownerAddress) {
+            throw new Error('You must be the owner to set the status');
+          }
+          const result = await contract.methods.setStatus().send({ from: ownerAddress });
+          document.getElementById('setStatusResult').innerHTML = 'Status set successfully';
+		  status();
+        } catch (error) {
+          console.error(error);
+          document.getElementById('setStatusResult').innerHTML = error.message;
+        }
+        }
+
+	  async function resetvotes() {
+        try {
+          const ownerAddress = document.getElementById('ownerAddress').value;
+          await window.ethereum.request({ method: 'eth_requestAccounts' });
+          const accounts = await web3.eth.getAccounts();
+          if (accounts[0] !== ownerAddress) {
+            throw new Error('You must be the owner to set the status');
+          }
+          const result = await contract.methods.resetVoting().send({ from: ownerAddress });
+          document.getElementById('resetstatusresult').innerHTML = 'Reset set successfully';
+		  status();
+		  votersListTable();
+        } catch (error) {
+          console.error(error);
+          document.getElementById('resetstatusresult').innerHTML = error.message;
+        }
+      }
+
+	  async function candidateListTable() {
+        const candidateList = await contract.methods.getCandidateList().call();
+        const candidateSelect = document.getElementById("candidateListTableBody");
+        candidateSelect.innerHTML = "";
+        candidateList.forEach(candidate => {
+          const row = candidateSelect.insertRow(-1);
+          const cell1 = row.insertCell(0);
+          cell1.innerHTML = candidate;
+        });
+      }
+
+	  async function votersListTable() {
+        const votersList = await contract.methods.getVotersList().call();
+        const voterSelect = document.getElementById("votersListTableBody");
+        voterSelect.innerHTML = "";
+        votersList.forEach(voter => {
+          const row = voterSelect.insertRow(-1);
+          const cell1 = row.insertCell(0);
+          cell1.innerHTML = voter;
+        });
+      }
+
+      async function registerCandidate() {
+        try {
+          const candidateAddress = document.getElementById('candidateAddress').value;
+          const ownerAddress = document.getElementById('ownerAddress').value;
+          await window.ethereum.request({ method: 'eth_requestAccounts' });
+          const accounts = await web3.eth.getAccounts();
+          if (accounts[0] !== ownerAddress) {
+            throw new Error('You must be the owner to register a candidate');
+          }
+          const result = await contract.methods.registerCandidate(candidateAddress).send({ from: ownerAddress });
+		  document.getElementById('registerCandidateResult').innerHTML = candidateAddress + '  Registered Candidate';
+		  candidateListTable();
+          const candidateRegisteredEvent = result.events.CandidateRegistered;
+          if (candidateRegisteredEvent) {
+            const candidateRegisteredAddress = candidateRegisteredEvent.returnValues[0];
+            document.getElementById('registerCandidateResult').innerHTML = `Candidate ${candidateRegisteredAddress} registered successfully`;
+			candidateListTable();
+			//document.getElementById('registerCandidateResult').innerHTML = candidateAddress;
+          }
+		  candidateListTable();
+        } catch (error) {
+          console.error(error);
+          document.getElementById('registerCandidateResult').innerHTML = error.message;
+        }
+		
+      }
+
+	  
+	  async function setResult() {
+        try {
+          const ownerAddress = document.getElementById('ownerAddress').value;
+          await window.ethereum.request({ method: 'eth_requestAccounts' });
+          const accounts = await web3.eth.getAccounts();
+          if (accounts[0] !== ownerAddress) {
+            throw new Error('You must be the owner to set the Result');
+          }
+          const result = await contract.methods.result().send({ from: ownerAddress });
+          document.getElementById('setResultfunction').innerHTML = 'Result set successfully';
+        } catch (error) {
+          console.error(error);
+          document.getElementById('setResultfunction').innerHTML = error.message;
+        }
+      }
+
+      async function voteForCandidate() {
+        try {
+          const candidateAddress = document.getElementById('candidateAddressToVote').value;
+          await window.ethereum.request({ method: 'eth_requestAccounts' });
+          const accounts = await web3.eth.getAccounts();
+          const result = await contract.methods.vote(candidateAddress).send({ from: accounts[0] });
+		 document.getElementById('voteForCandidateResult').innerHTML = candidateAddress + "  voted";
+          const voteCastEvent = result.events.VoteCast;
+          if (voteCastEvent) {
+          const voterAddress = voteCastEvent.returnValues[0];
+          const candidateAddress = voteCastEvent.returnValues[1];
+          //document.getElementById('voteForCandidateResult').innerHTML = "Vote cast by " + voterAddress + "for "  + candidateAddress;
+          }
+        } catch (error) {
+        console.error(error);
+        document.getElementById('voteForCandidateResult').innerHTML = error.message;
+        }
+        }
+
+		async function setwinner() {
+          try {
+          const ownerAddress = document.getElementById('ownerAddress').value;
+          await window.ethereum.request({ method: 'eth_requestAccounts' });
+          const accounts = await web3.eth.getAccounts();
+          if (accounts[0] !== ownerAddress) {
+          throw new Error('You must be the owner to set the winner');
+          }
+          const winnerAddress = await contract.methods.getWinner().call();
+          document.getElementById('WinnerAddress').innerHTML = winnerAddress;
+          } catch (error) {
+           console.error(error);
+          }
+        }
+
+		async function setWinnerVotes() {
+          try {
+		  const ownerAddress = document.getElementById('ownerAddress').value;
+		  await window.ethereum.request({ method: 'eth_requestAccounts' });
+		  const accounts = await web3.eth.getAccounts();
+          if (accounts[0] !== ownerAddress) {
+          throw new Error('You must be the owner to set the winner');
+		  }
+          const winnerVotes = await contract.methods.getWinnerVotes().call();
+          document.getElementById('WinnerVoteCount').innerHTML = winnerVotes;
+          } catch (error) {
+          console.error(error);
+          }
+        }
+		
+		
+
+		
+    </script>
+    
+  </body>
+</html>
